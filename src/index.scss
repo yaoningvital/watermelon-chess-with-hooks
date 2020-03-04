@@ -1,0 +1,43 @@
+html {
+  height: 100%;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  background-color: #b2e1e4;
+}
+
+@font-face {
+  font-family: 'FGG';
+  src: url("./assets/fonts/FGG.ttf");
+}
+
+.game {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  h4 {
+    font-family: 'FGG';
+    font-size: 24px;
+  }
+
+  .board {
+    background: url("./assets/images/board_bg.png");
+    background-size: cover;
+    background-color: #4db9c8;
+    border-radius: 10px;
+    position: relative;
+
+
+    button.chess {
+      border-style: none;
+      outline: none;
+      position: absolute;
+    }
+  }
+}
