@@ -105,3 +105,136 @@ export const chessesDefault = [
     side: null,
   },
 ]
+
+/**
+ * 返回当前点击棋子的落子点
+ * @param clickedChessData :当前点击的这个棋子
+ * @param currentChesses : 当前棋子布局
+ * @returns {[]}
+ */
+export function getAbleReceive (clickedChessData, currentChesses) {
+  let siblings = clickedChessData.siblings
+  let ableReceive = []
+  for (let i = 0; i < siblings.length; i++) {
+    for (let j = 0; j < currentChesses.length; j++) {
+      if (currentChesses[j].name === siblings[i]) {
+        if (currentChesses[j].side === null) {
+          ableReceive.push(currentChesses[j])
+        }
+      }
+    }
+  }
+  return ableReceive
+}
+
+/**
+ * 判断当前位置是不是一个落子点
+ * @param chessData : 当前位置
+ * @param ableReceive : 所有的落子点组成的数组
+ * @returns {boolean}
+ */
+export function isOneOfAbleReceive (chessData, ableReceive) {
+  let isAbleReceive = false
+  for (let i = 0; i < ableReceive.length; i++) {
+    if (ableReceive[i].name === chessData.name) {
+      isAbleReceive = true
+      break
+    }
+  }
+  return isAbleReceive
+}
+
+/**
+ * 返回这个棋子相对于 board 的位置（top和left的值）
+ * @param chessName : 棋子名称
+ * @param a : 五个小圆的半径
+ * @returns {{top: number, left: number}}
+ */
+export function getChessPosition (chessName, a) {
+  let top, left = 0
+  if (chessName === 'N1') {
+    top = 0
+    left = 3 * a
+  } else if (chessName === 'N2') {
+    top = a / 12
+    left = 3 * a - 0.9965 * a
+  } else if (chessName === 'N3') {
+    top = a
+    left = 3 * a
+  } else if (chessName === 'N4') {
+    top = a / 12
+    left = 3 * a + 0.9965 * a
+  } else if (chessName === 'W1') {
+    top = 3 * a - 0.9965 * a
+    left = a / 12
+  } else if (chessName === 'W2') {
+    top = 3 * a
+    left = 0
+  } else if (chessName === 'W3') {
+    top = 3 * a + 0.9965 * a
+    left = a / 12
+  } else if (chessName === 'W4') {
+    top = 3 * a
+    left = a
+  } else if (chessName === 'S1') {
+    top = 5 * a
+    left = 3 * a
+  } else if (chessName === 'S2') {
+    top = 6 * a - a / 12
+    left = 3 * a - 0.9965 * a
+  } else if (chessName === 'S3') {
+    top = 6 * a
+    left = 3 * a
+  } else if (chessName === 'S4') {
+    top = 6 * a - a / 12
+    left = 3 * a + 0.9965 * a
+  } else if (chessName === 'E1') {
+    top = 3 * a - 0.9965 * a
+    left = 6 * a - a / 12
+  } else if (chessName === 'E2') {
+    top = 3 * a
+    left = 5 * a
+  } else if (chessName === 'E3') {
+    top = 3 * a + 0.9965 * a
+    left = 6 * a - a / 12
+  } else if (chessName === 'E4') {
+    top = 3 * a
+    left = 6 * a
+  } else if (chessName === 'C1') {
+    top = 3 * a - 0.9965 * a
+    left = 3 * a
+  } else if (chessName === 'C2') {
+    top = 3 * a
+    left = 3 * a - 0.9965 * a
+  } else if (chessName === 'C3') {
+    top = 3 * a + 0.9965 * a
+    left = 3 * a
+  } else if (chessName === 'C4') {
+    top = 3 * a
+    left = 3 * a + 0.9965 * a
+  } else if (chessName === 'C5') {
+    top = 3 * a
+    left = 3 * a
+  }
+  
+  return {
+    top,
+    left
+  }
+}
+
+/**
+ * 将点击的落子点变为新的颜色（side），返回更新后的棋子布局
+ * @param newChesses : 当前棋子布局
+ * @param clickedAbleReceive : 点击的落子点
+ * @param newside : 新的颜色(新的side)
+ * @returns {*}
+ */
+export function getNewChesses (newChesses, clickedAbleReceive, newside) {
+  for (let i = 0; i < newChesses.length; i++) {
+    if (newChesses[i].name === clickedAbleReceive.name) {
+      newChesses[i].side = newside
+      return newChesses
+    }
+  }
+}

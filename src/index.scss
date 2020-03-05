@@ -20,10 +20,34 @@ body {
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
+  position: relative;
 
   h4 {
     font-family: 'FGG';
     font-size: 24px;
+  }
+
+  .next-step {
+    position: absolute;
+    top: 40px;
+    right: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+
+    span {
+      font-family: 'FGG';
+      margin-right: 10px;
+    }
+
+    button {
+      border-style: none;
+      outline: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 13px;
+    }
   }
 
   .board {
@@ -33,11 +57,23 @@ body {
     border-radius: 10px;
     position: relative;
 
-
-    button.chess {
-      border-style: none;
-      outline: none;
+    .chess-wrap {
       position: absolute;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      button.chess {
+        border-style: none;
+        outline: none;
+        padding: 0;
+      }
+
+      .green-dot {
+        position: absolute;
+        background-image: radial-gradient(at 80px 80px, rgba(0, 255, 0, 0.7), rgba(0, 255, 0, 0.7));
+      }
     }
   }
 }

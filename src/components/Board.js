@@ -1,8 +1,12 @@
 import React from 'react'
 import Chess from './Chess'
+import { getChessPosition, isOneOfAbleReceive } from "../utils";
 
 function Board (props) {
-  let {boardWidth, chesses, r,a} = props
+  let {
+    boardWidth, chesses, r, a, handleClickChess, clickedChess,
+    ableReceive, handleClickChessWrap,
+  } = props
   return (
     <div className="board"
          style={{
@@ -11,17 +15,58 @@ function Board (props) {
          }}
     >
       {
-        chesses.map((chessData) => (
-          <Chess
-            key={chessData.name}
-            name={chessData.name}
-            siblings={chessData.siblings}
-            side={chessData.side}
-            r={r}
-            bw={boardWidth}
-            a={a}
-          />
-        ))
+        chesses.map((chessData) => {
+          let chessWidth = 2 * r  // 棋子的宽度
+          // 棋子的top、left
+          let {top: chessTop, left: chessLeft} = getChessPosition(chessData.name, a)
+          let boxShadow = `2px 2px 2px rgba(0,0,0,0.2)`
+          
+          // 当前棋子是当前点击的棋子
+          if (clickedChess && clickedChess.name === chessData.name) {
+            chessWidth = 2.5 * r
+            chessTop = chessTop - r / 4
+            chessLeft = chessLeft - r / 4
+            boxShadow = `4px 4px 4px rgba(0,0,0,0.2)`
+          }
+          
+          let greenDotWidth = 10
+          
+          return (
+            <div className="chess-wrap"
+                 key={chessData.name}
+                 style={{
+                   width: chessWidth + 'px',
+                   height: chessWidth + 'px',
+                   top: chessTop + 'px',
+                   left: chessLeft + 'px',
+                 }}
+                 onClick={() => handleClickChessWrap(chessData)}
+            >
+              {
+                (chessData.side === 0 || chessData.side === 1) &&
+                <Chess
+                  chessData={chessData}
+                  chessWidth={chessWidth}
+                  boxShadow={boxShadow}
+                  handleClickChess={handleClickChess}
+                  clickedChess={clickedChess}
+                  ableReceive={ableReceive}
+                />
+              }
+              
+              {
+                chessData.side === null && isOneOfAbleReceive(chessData, ableReceive) &&
+                <div className="green-dot"
+                     style={{
+                       width: greenDotWidth + 'px',
+                       height: greenDotWidth + 'px',
+                       borderRadius: greenDotWidth / 2 + 'px',
+                     }}
+                />
+              }
+            </div>
+          )
+        })
       }
     
     
