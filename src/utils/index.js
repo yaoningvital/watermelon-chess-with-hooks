@@ -238,3 +238,206 @@ export function getNewChesses (newChesses, clickedAbleReceive, newside) {
     }
   }
 }
+
+/**
+ * 返回当前棋子布局中，searchSide这一方被吃掉的棋子的名称组成的数组
+ * @param chesses : 当前棋子布局
+ * @param searchSide : 要查找的被吃掉的这一方棋子的side
+ */
+export function findBeEatenChesses (chesses, searchSide) {
+  let beEatenChesses = [] // 所有被吃掉的棋子的名称组成的数组
+  let searchSideChesses = getAllSearchSideChesses(chesses, searchSide) // 这一方所有的棋子
+  
+  // 1、先判断单独的棋子被对方吃掉的情况
+  for (let i = 0; i < searchSideChesses.length; i++) {
+    // 如果这颗棋子所有相邻的棋子都是对方的棋子，则这颗棋子被吃掉
+    if (allSiblingsAreOtherSide(chesses, searchSideChesses[i])) {
+      beEatenChesses.push(searchSideChesses[i].name)
+    }
+  }
+  // 2、找本方的棋子两个及以上连在一起的所有组合
+  let combinations = getAllCombinationOfSearchSide(chesses, searchSide)
+  for (let cbn of combinations) {
+    if (allSurroundSiblingsOfThisCbnAreOtherSide(chesses, cbn, searchSide)) { // 这个组合周围的棋子都是对方的棋子，这个组合将被吃掉
+      beEatenChesses = beEatenChesses.concat(cbn)
+    }
+  }
+  
+  return beEatenChesses
+}
+
+/**
+ * 判断当前棋子布局下，cbn 这个组合是否被吃掉（即这个组合的周围是否都是对方的棋子）
+ * @param chesses : 当前棋子布局
+ * @param cbn : 一个组合
+ * @param searchSide : 要查找的被吃掉的这一方棋子的side
+ */
+function allSurroundSiblingsOfThisCbnAreOtherSide (chesses, cbn, searchSide) {
+  let surround = getSurroundSiblingsOfThisCbn(chesses, cbn)
+  let otherSide = searchSide === 0 ? 1 : 0
+  let allSurroundAreOtherSide = true // 假设周围的位置都是对方的棋子
+  
+  for (let surroundItemName of surround) {
+    for (let i = 0; i < chesses.length; i++) {
+      if (chesses[i].name === surroundItemName) {
+        if (chesses[i].side !== otherSide) {
+          allSurroundAreOtherSide = false
+          return allSurroundAreOtherSide
+        }
+        break
+      }
+    }
+  }
+  return allSurroundAreOtherSide
+}
+
+/**
+ * 返回 当前棋子布局 下，当前组合的所有周围的位置的名称 组成的数组
+ * @param chesses : 当前棋子布局
+ * @param cbn : 当前组合
+ */
+function getSurroundSiblingsOfThisCbn (chesses, cbn) {
+  let surround = []
+  for (let itemName of cbn) {
+    for (let i = 0; i < chesses.length; i++) {
+      if (chesses[i].name === itemName) {
+        let siblings = chesses[i].siblings
+        for (let siblingItem of siblings) {
+          if (!cbn.includes(siblingItem)) {
+            surround.push(siblingItem)
+          }
+        }
+      }
+    }
+  }
+  
+  surround = [...new Set(surround)] // 数组去重
+  return surround
+}
+
+export function getAllCombinationOfSearchSide (chesses, searchSide) {
+  let combinations = [] // searchSide这一方的棋子，两个及以上连在一起的所有组合
+  let searchSideChesses = getAllSearchSideChesses(chesses, searchSide) // 这一方所有的棋子
+  
+  for (let i = 0; i < searchSideChesses.length; i++) {
+    let cbn = getCombinationOfThisChess(chesses, searchSideChesses[i]) // 得到从当前棋子出发找到的本方棋子连在一起的组合
+    if (cbn.length > 1 && !combinationsIncludeThisCbn(combinations, cbn)) {
+      combinations.push(cbn)
+    }
+  }
+  
+  return combinations
+}
+
+/**
+ * 判断 combinations 中是否有 cbn 这个组合，如果包含，返回 true
+ * @param combinations
+ * @param cbn
+ */
+function combinationsIncludeThisCbn (combinations, cbn) {
+  let includes = false // 假定 combinations 中不包含 cbn 这个组合
+  for (let cbnItem of combinations) {
+    if (cbnItem.length === cbn.length) {
+      let theSame = true // 先假定 cbnItem 和 cbn 这两个组合完全一样
+      for (let i = 0; i < cbnItem.length; i++) {
+        if (!cbn.includes(cbnItem[i])) {
+          theSame = false
+          break
+        }
+      }
+      if (theSame) {
+        includes = true
+        break
+      }
+    }
+  }
+  
+  return includes
+}
+
+// 得到从当前棋子出发找到的本方棋子连在一起的组合
+export function getCombinationOfThisChess (chesses, chessData) {
+  let together = [chessData.name]
+  f(chesses, chessData.name, together)
+  return together
+}
+
+function f (chesses, chessDataName, together) {
+  let siblings = getOwnSideSiblingsName(chesses, chessDataName) // 找到当前棋子的所有本方相邻棋子
+  if (siblings.length > 0) {
+    for (let siblingName of siblings) {
+      if (!together.includes(siblingName)) {
+        together.push(siblingName)
+        f(chesses, siblingName, together)
+      }
+    }
+  }
+}
+
+/**
+ * 返回要查询的这个棋子的 所有本方相邻棋子
+ * @param chesses : 当前棋子布局
+ * @param thisChessName : 要查询的这颗棋子的名称
+ */
+export function getOwnSideSiblingsName (chesses, thisChessName) {
+  let ownSideSiblingsName = []
+  let thisChess = null
+  for (let i = 0; i < chesses.length; i++) {
+    if (chesses[i].name === thisChessName) {
+      thisChess = chesses[i]
+    }
+  }
+  
+  let siblings = thisChess.siblings //当前棋子的所有相邻棋子
+  for (let siblingName of siblings) {
+    for (let i = 0; i < chesses.length; i++) {
+      if (chesses[i].name === siblingName) { // 找到相邻棋子
+        if (chesses[i].side === thisChess.side) {
+          ownSideSiblingsName.push(chesses[i].name)
+        }
+        break
+      }
+    }
+  }
+  
+  return ownSideSiblingsName
+}
+
+/**
+ * 返回当前棋子布局中，颜色为当前要查询的颜色的所有棋子
+ * @param chesses : 当前棋子布局
+ * @param searchSide : 要查询的颜色
+ * @returns {[]}
+ */
+export function getAllSearchSideChesses (chesses, searchSide) {
+  let searchSideChesses = []
+  for (let i = 0; i < chesses.length; i++) {
+    if (chesses[i].side === searchSide) {
+      searchSideChesses.push(chesses[i])
+    }
+  }
+  return searchSideChesses
+}
+
+/**
+ * 判断当前这颗棋子的所有相邻的位置是否都是对方的棋子，如果都是对方的棋子，返回 true
+ * @param chesses : 当前棋子布局
+ * @param oneChess : 要查询的这颗棋子位置
+ * @returns {boolean}
+ */
+export function allSiblingsAreOtherSide (chesses, oneChess) {
+  let siblingsAreOtherSide = true // 假设这个棋子所有相邻的位置都是对方的棋子
+  let thisChessSiblings = oneChess.siblings // 所有相邻的位置的名称
+  for (let siblingName of thisChessSiblings) {
+    for (let i = 0; i < chesses.length; i++) {
+      if (chesses[i].name === siblingName) { // 找到这颗相邻的棋子的位置
+        if (chesses[i].side === null ||  // 这个相邻位置上是空的
+          chesses[i].side === oneChess.side) { // 或者是自己这一方的棋子
+          siblingsAreOtherSide = false
+          return siblingsAreOtherSide
+        }
+      }
+    }
+  }
+  return siblingsAreOtherSide
+}

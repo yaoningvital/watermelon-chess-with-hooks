@@ -7,6 +7,7 @@ function Board (props) {
     boardWidth, chesses, r, a, handleClickChess, clickedChess,
     ableReceive, handleClickChessWrap,
   } = props
+  
   return (
     <div className="board"
          style={{

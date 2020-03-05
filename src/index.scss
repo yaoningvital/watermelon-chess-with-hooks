@@ -25,9 +25,10 @@ body {
   h4 {
     font-family: 'FGG';
     font-size: 24px;
+    margin-bottom: 20px;
   }
 
-  .next-step {
+  .next-step, .winner {
     position: absolute;
     top: 40px;
     right: 20px;
@@ -74,6 +75,28 @@ body {
         position: absolute;
         background-image: radial-gradient(at 80px 80px, rgba(0, 255, 0, 0.7), rgba(0, 255, 0, 0.7));
       }
+    }
+  }
+
+  .btns {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    margin-top: 25px;
+
+    button {
+      //border-style: none;
+      outline: none;
+      border: 1px solid #333;
+      //background-image: linear-gradient(#b4a828, #e7a031);
+      color: #333;
+      font-family: 'FGG';
+      font-size: 20px;
+      padding: 8px 15px;
+      border-radius: 6px;
     }
   }
 }

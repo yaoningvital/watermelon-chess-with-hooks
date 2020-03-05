@@ -1,7 +1,7 @@
 import React from 'react'
 
 function Chess (props) {
-  let {chessData, chessWidth,boxShadow, handleClickChess,} = props
+  let {chessData, chessWidth, boxShadow, handleClickChess,} = props
   let {name, siblings, side} = chessData
   
   let backgroundImage = null
