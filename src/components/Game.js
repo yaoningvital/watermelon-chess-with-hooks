@@ -17,11 +17,12 @@ function Game () {
   let [history, setHistory] = useState([{
     chesses: chessesDefault,
     currentSide: 1,
+    latestMoveChessName: null, // 最新移动的棋子的名称
   }])
   
   function handleClickChess (chessData) {
     if (sides.includes(winnerSide)) return // 已经有人胜出了，返回
-    if (chessData.side !== history[history.length-1].currentSide) return // 如果点击的不是当前可下方，返回
+    if (chessData.side !== history[history.length - 1].currentSide) return // 如果点击的不是当前可下方，返回
     
     // 1、改变点击棋子的样式
     setClickedChess(chessData)
@@ -29,80 +30,110 @@ function Game () {
     // 2、找落子点
     let newAbleReceive = getAbleReceive(chessData, history[history.length - 1].chesses)
     setAbleReceive(newAbleReceive)
+    
   }
   
   // 处理点击落子点
   function handleClickChessWrap (chessData) {
-    if (sides.includes(winnerSide)) return // 已经有人胜出了，返回
+    // 已经有人胜出了，返回
+    if (sides.includes(winnerSide)) return
     
     // 如果不是落子点，返回
     if (!isOneOfAbleReceive(chessData, ableReceive)) return
+    
     // 落子点变成点击棋子的 side
     let newChesses = _.cloneDeep(history[history.length - 1].chesses)
     newChesses = getNewChesses(newChesses, chessData, clickedChess.side)
+    
     // 当前点击的棋子 变成 空格
     newChesses = getNewChesses(newChesses, clickedChess, null)
-    // 更新
-    let newCurrentSide = history[history.length-1].currentSide === 0 ? 1 : 0
+    
+    // 得到新的下一步玩家
+    let newCurrentSide = history[history.length - 1].currentSide === 0 ? 1 : 0
+    
+    // 清空 当前点击的棋子
     setClickedChess(null)
+    
+    // 清空 落子点
     setAbleReceive([])
+    
+    // 得到新的 history
     let newHistory = _.cloneDeep(history)
     newHistory.push({
       chesses: newChesses,
       currentSide: newCurrentSide,
+      latestMoveChessName: chessData.name,
     })
-    setHistory(newHistory)
+    
     
     // 判断有没有棋子被吃掉
     let beEatenChesses = findBeEatenChesses(newChesses, newCurrentSide)
-    
-    if (beEatenChesses.length > 0) { // 有棋子被吃掉
-      setTimeout(() => {
-        let cashChesses = _.cloneDeep(newChesses)
-        let shiningTimes = 6
-        
-        let timer = setInterval(() => {
-          shiningTimes--
-          cashChesses = changeCashChesses(cashChesses, beEatenChesses, newCurrentSide)
-          let cashHistory = _.cloneDeep(history)
-          cashHistory.pop()
-          cashHistory.push({
-            chesses: cashChesses,
-            currentSide: newCurrentSide,
-          })
-          setHistory(cashHistory)
-          
-          if (shiningTimes < 0) {
-            clearInterval(timer)
-            
-            setTimeout(() => {
-              // 去掉被吃掉的棋子
-              let newHistory = deleteBeEatenChesses(beEatenChesses, cashHistory, newCurrentSide)
-              
-              let newCurrentSideCount = 0 // 被吃掉方剩下的棋子个数
-              let latestChesses = newHistory[newHistory.length - 1].chesses
-              for (let latestChessItem of latestChesses) {
-                if (latestChessItem.side === newCurrentSide) {
-                  newCurrentSideCount++
-                }
-              }
-              if (newCurrentSideCount <= 2) { // 如果被吃掉方的棋子只剩下2颗或更少，则对方获胜
-                let winner = newCurrentSide === 0 ? 1 : 0
-                setWinnerSide(winner)
-              }
-            }, 10)
-          }
-        }, 500)
-      }, 100)
+    // 如果这一步没有棋子被吃掉
+    if (beEatenChesses.length === 0) {
+      setHistory(newHistory)
+      return
     }
+    
+    // 有棋子被吃掉
+    // 先执行将被吃掉棋子闪动几下的动画
+    setHistory(newHistory)
+    setTimeout(() => {
+      shiningAnimation(newChesses, beEatenChesses, 6, newCurrentSide, newHistory, chessData.name)
+    }, 100)
+  }
+  
+  
+  function shiningAnimation (newChesses, beEatenChesses, shiningTimes, newCurrentSide, newHistory, latestMoveChessName) {
+    let cashChesses = _.cloneDeep(newChesses)
+    let cashHistory = _.cloneDeep(newHistory)
+    
+    let timer = setInterval(() => {
+      cashHistory = _.cloneDeep(cashHistory)
+  
+      cashChesses = changeCashChesses(cashChesses, beEatenChesses, newCurrentSide)
+      cashHistory.pop()
+      cashHistory.push({
+        chesses: cashChesses,
+        currentSide: newCurrentSide,
+        latestMoveChessName: latestMoveChessName,
+      })
+      setHistory(cashHistory)
+      
+      shiningTimes--
+      if (shiningTimes < 0) { // 动画执行完了
+        clearInterval(timer)
+        // 去掉被吃掉的棋子
+        cashHistory = getNewHistoryAfterDeleteBeEatenChesses(beEatenChesses, cashHistory, newCurrentSide, latestMoveChessName)
+        setHistory(cashHistory)
+        // 判断有没有胜出方
+        let winner = getWinner(cashHistory, newCurrentSide)
+        setWinnerSide(winner)
+      }
+    }, 500)
+  }
+  
+  function getWinner (newHistory, newCurrentSide) {
+    let winner = null // 获胜方的side
+    let newCurrentSideCount = 0 // 被吃掉方剩下的棋子个数
+    
+    let latestChesses = newHistory[newHistory.length - 1].chesses
+    for (let latestChessItem of latestChesses) {
+      if (latestChessItem.side === newCurrentSide) {
+        newCurrentSideCount++
+      }
+    }
+    if (newCurrentSideCount <= 2) { // 如果被吃掉方的棋子只剩下2颗或更少，则对方获胜
+      winner = newCurrentSide === 0 ? 1 : 0
+    }
+    
+    return winner
   }
   
   /**
-   * 从当前棋子布局中删除掉 被吃掉的棋子
+   * 从当前棋子布局中删除掉 被吃掉的棋子（被吃掉的棋子side设为null），返回更新后的 history
    * @param beEatenChesses : 被吃掉的棋子
    */
-  function deleteBeEatenChesses (beEatenChesses, cashHistory, newCurrentSide) {
-    let newHistory = _.cloneDeep(cashHistory)
+  function getNewHistoryAfterDeleteBeEatenChesses (beEatenChesses, newHistory, newCurrentSide, latestMoveChessName) {
     let newChesses = _.cloneDeep(newHistory[newHistory.length - 1].chesses)
     for (let chessItem of newChesses) {
       if (beEatenChesses.includes(chessItem.name)) {
@@ -113,12 +144,13 @@ function Game () {
     newHistory.push({
       chesses: newChesses,
       currentSide: newCurrentSide,
+      latestMoveChessName: latestMoveChessName,
     })
-    setHistory(newHistory)
     return newHistory
   }
   
   function changeCashChesses (cashChesses, beEatenChesses, newCurrentSide) {
+    cashChesses = _.cloneDeep(cashChesses)
     for (let chessItem of cashChesses) {
       if (beEatenChesses.includes(chessItem.name)) {
         if (chessItem.side === newCurrentSide) {
@@ -151,6 +183,7 @@ function Game () {
     setHistory([{
       chesses: chessesDefault,
       currentSide: 1,
+      latestMoveChessName: null,
     }])
   }
   
@@ -189,6 +222,7 @@ function Game () {
              handleClickChess={handleClickChess}
              ableReceive={ableReceive}
              handleClickChessWrap={handleClickChessWrap}
+             latestMoveChessName={history[history.length - 1].latestMoveChessName}
       />
       
       {/*  按钮区*/}

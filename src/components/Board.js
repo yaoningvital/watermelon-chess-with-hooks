@@ -5,7 +5,7 @@ import { getChessPosition, isOneOfAbleReceive } from "../utils";
 function Board (props) {
   let {
     boardWidth, chesses, r, a, handleClickChess, clickedChess,
-    ableReceive, handleClickChessWrap,
+    ableReceive, handleClickChessWrap, latestMoveChessName,
   } = props
   
   return (
@@ -30,7 +30,7 @@ function Board (props) {
             boxShadow = `4px 4px 4px rgba(0,0,0,0.2)`
           }
           
-          let greenDotWidth = 10
+          let dotWidth = 10
           
           return (
             <div className="chess-wrap"
@@ -59,9 +59,20 @@ function Board (props) {
                 chessData.side === null && isOneOfAbleReceive(chessData, ableReceive) &&
                 <div className="green-dot"
                      style={{
-                       width: greenDotWidth + 'px',
-                       height: greenDotWidth + 'px',
-                       borderRadius: greenDotWidth / 2 + 'px',
+                       width: dotWidth + 'px',
+                       height: dotWidth + 'px',
+                       borderRadius: dotWidth / 2 + 'px',
+                     }}
+                />
+              }
+              
+              {
+                latestMoveChessName === chessData.name &&
+                <div className="red-dot"
+                     style={{
+                       width: dotWidth + 'px',
+                       height: dotWidth + 'px',
+                       borderRadius: dotWidth / 2 + 'px',
                      }}
                 />
               }

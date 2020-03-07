@@ -75,6 +75,11 @@ body {
         position: absolute;
         background-image: radial-gradient(at 80px 80px, rgba(0, 255, 0, 0.7), rgba(0, 255, 0, 0.7));
       }
+
+      .red-dot {
+        position: absolute;
+        background-image: radial-gradient(at 80px 80px, rgba(255, 0, 0, 0.7), rgba(255, 0, 0, 0.7));
+      }
     }
   }
 
