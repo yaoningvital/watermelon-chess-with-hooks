@@ -8,23 +8,20 @@ function Game () {
   let r = 0.0463 * boardWidth // 棋子的半径
   let a = (0.5 * boardWidth - r) / 3 // 五个小圆的半径
   
-  
   let [clickedChess, setClickedChess] = useState(null) // 当前点击的棋子
   let [ableReceive, setAbleReceive] = useState([]) // 落子点
   
   let sides = [0, 1] // 对战双方
-  let [currentSide, setCurrentSide] = useState(1) // 默认白棋先下
   let [winnerSide, setWinnerSide] = useState(null) // 获胜方
   
   let [history, setHistory] = useState([{
     chesses: chessesDefault,
-    currentSide: currentSide,
-    winnerSide: winnerSide,
+    currentSide: 1,
   }])
   
   function handleClickChess (chessData) {
-    if (sides.includes(history[history.length - 1].winnerSide)) return // 已经有人胜出了，返回
-    if (chessData.side !== currentSide) return // 如果点击的不是当前可下方，返回
+    if (sides.includes(winnerSide)) return // 已经有人胜出了，返回
+    if (chessData.side !== history[history.length-1].currentSide) return // 如果点击的不是当前可下方，返回
     
     // 1、改变点击棋子的样式
     setClickedChess(chessData)
@@ -36,7 +33,7 @@ function Game () {
   
   // 处理点击落子点
   function handleClickChessWrap (chessData) {
-    if (sides.includes(history[history.length - 1].winnerSide)) return // 已经有人胜出了，返回
+    if (sides.includes(winnerSide)) return // 已经有人胜出了，返回
     
     // 如果不是落子点，返回
     if (!isOneOfAbleReceive(chessData, ableReceive)) return
@@ -46,21 +43,18 @@ function Game () {
     // 当前点击的棋子 变成 空格
     newChesses = getNewChesses(newChesses, clickedChess, null)
     // 更新
-    let newCurrentSide = currentSide === 0 ? 1 : 0
-    setCurrentSide(newCurrentSide)
+    let newCurrentSide = history[history.length-1].currentSide === 0 ? 1 : 0
     setClickedChess(null)
     setAbleReceive([])
     let newHistory = _.cloneDeep(history)
     newHistory.push({
       chesses: newChesses,
       currentSide: newCurrentSide,
-      winnerSide: winnerSide,
     })
     setHistory(newHistory)
     
     // 判断有没有棋子被吃掉
     let beEatenChesses = findBeEatenChesses(newChesses, newCurrentSide)
-    console.log('beEatenChesses:', beEatenChesses)
     
     if (beEatenChesses.length > 0) { // 有棋子被吃掉
       setTimeout(() => {
@@ -75,7 +69,6 @@ function Game () {
           cashHistory.push({
             chesses: cashChesses,
             currentSide: newCurrentSide,
-            winnerSide: winnerSide,
           })
           setHistory(cashHistory)
           
@@ -120,7 +113,6 @@ function Game () {
     newHistory.push({
       chesses: newChesses,
       currentSide: newCurrentSide,
-      winnerSide: winnerSide,
     })
     setHistory(newHistory)
     return newHistory
@@ -144,6 +136,7 @@ function Game () {
   function goBack () {
     setClickedChess(null)
     setAbleReceive([])
+    setWinnerSide(null)
     
     let newHistory = _.cloneDeep(history)
     newHistory.pop()
@@ -154,12 +147,10 @@ function Game () {
   function replay () {
     setClickedChess(null)
     setAbleReceive([])
-    setCurrentSide(1)
     setWinnerSide(null)
     setHistory([{
       chesses: chessesDefault,
       currentSide: 1,
-      winnerSide: null,
     }])
   }
   
@@ -170,7 +161,7 @@ function Game () {
       
       {/*下一步*/}
       {
-        history[history.length - 1].winnerSide === null &&
+        winnerSide === null &&
         <div className="next-step">
           <span>下一步：</span>
           <button style={{
@@ -181,11 +172,11 @@ function Game () {
       
       {/*获胜方*/}
       {
-        sides.includes(history[history.length - 1].winnerSide) &&
+        sides.includes(winnerSide) &&
         <div className="winner">
           <span>获胜方是：</span>
           <button style={{
-            backgroundColor: history[history.length - 1].winnerSide === 0 ? '#144181' : '#e5e8e9',
+            backgroundColor: winnerSide === 0 ? '#144181' : '#e5e8e9',
           }}/>
         </div>
       }

@@ -2,12 +2,11 @@ import React from 'react'
 
 function Chess (props) {
   let {chessData, chessWidth, boxShadow, handleClickChess,} = props
-  let {name, siblings, side} = chessData
   
   let backgroundImage = null
-  if (side === 0) {
+  if (chessData.side === 0) {
     backgroundImage = `radial-gradient(at 80px 80px, #144181, #144181)`
-  } else if (side === 1) {
+  } else if (chessData.side === 1) {
     backgroundImage = `radial-gradient(at 80px 80px, #e5e8e9, #e5e8e9)`
   }
   
