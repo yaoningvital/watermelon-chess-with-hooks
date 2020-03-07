@@ -34,5 +34,6 @@
   },
   "devDependencies": {
     "node-sass": "^4.13.1"
-  }
+  },
+  "homepage": "."
 }
